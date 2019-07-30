@@ -12,14 +12,14 @@
 @implementation STPLocalizationUtils
 
 + (NSString *)localizedStripeStringForKey:(NSString *)key {
-
+    
     /**
      If the main app has a localization that we do not support, we want to switch
      to pulling strings from the main bundle instead of our own bundle so that
      users can add translations for our strings without having to fork the sdk.
      
      At launch, NSBundles' store what language(s) the user requests that they
-     actually have translations for in `preferredLocalizations`. 
+     actually have translations for in `preferredLocalizations`.
      
      We compare our framework's resource bundle to the main app's bundle, and
      if their language choice doesn't match up we switch to pulling strings
@@ -31,18 +31,18 @@
      preferred language and our strings are in es.
      */
     
-    static BOOL useMainBundle = NO;
+    NSString *language = [[NSUserDefaults standardUserDefaults] stringForKey:@"language"];
+    NSString *localizationBundlePathName = @"Base";
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        if (![[STPBundleLocator stripeResourcesBundle].preferredLocalizations.firstObject isEqualToString:[NSBundle mainBundle].preferredLocalizations.firstObject]) {
-            useMainBundle = YES;
-        }
-    });
+    if ([language isEqualToString:@"cn"]) {
+        localizationBundlePathName = @"zh-Hans";
+    } else if ([language isEqualToString:@"tw"]) {
+        localizationBundlePathName = @"zh-Hant";
+    }
     
-    NSBundle *bundle = useMainBundle ? [NSBundle mainBundle] : [STPBundleLocator stripeResourcesBundle];
-
-    NSString *translation = [bundle localizedStringForKey:key value:nil table:nil];
+    NSString *localizationBundlePath = [[NSBundle mainBundle] pathForResource:localizationBundlePathName ofType:@"lproj"];
+    NSBundle *bundle = localizationBundlePath ? [NSBundle bundleWithPath:localizationBundlePath] : [NSBundle mainBundle];
+    NSString *translation = [bundle localizedStringForKey:key value:nil table:@"Stripe"];
     
     return translation;
 }
